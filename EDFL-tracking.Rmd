@@ -1,0 +1,546 @@
+
+---
+title: "Emily Dickinson Family Library progress meter"
+author: "bill comstock"
+date: "`r Sys.Date()`"
+output: 
+  html_document: 
+    theme: readable
+---
+```{r, originalRequest,eval=FALSE, include=FALSE}
+2023-06-08
+Dear Bill,
+
+I’m writing to ask if there might be any wiggle-room that would enable an increase in the number of Dickinson Family Library books going through D40. Jene told Christine when she picked up the last batch that they could only handle 750 pages a month. At that rate—and assuming that indeed nothing like the pandemic again intervenes—the project will take some 9.5 years to complete (2034). We have an estimated 86,847 pages to go, those books only suitable to D40.
+
+Given lack of staff in D40, we have already shifted as much work as possible to D20 workflow, and will finish those books around the end of this calendar year. I understand the new scanner didn’t work out. If I should investigate outside vendors, such as NEDCC, to take on this work please let me know if that’s an acceptable alternative. Dickinson is our highest-profile collection, and the digital work already completed is both highly used, and highly appreciated within the scholarly community. I would dearly love to get this project finished before I retire—and while that may not be in the short term, it is certainly going to happen before 2034!
+
+I do understand that EDIBA projects are to be given priority, and I don’t want to compromise that important work. From a Houghton perspective, as a male-dominated collection, Dickinson (and other women writers) are definitely an equity issue. I’d appreciate your help in trying to find a way to move this forward at a faster pace.
+
+With appreciation for your time and attention,
+
+Leslie
+
+```
+
+
+```{r loadPackages, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list = ls()) # clear env vars
+
+pkgs.inst <- as.data.frame(installed.packages(noCache = TRUE)) # list of installed R packages
+
+pkgs.load <- c( # default list of packages to load
+   # "DiagrammeR",
+   # "DiagrammeRsvg",
+   # "digest",
+   "dplyr",
+   "DT", # https://rdrr.io/cran/DT/
+   # "esquisse", # GUI ggplot 
+   # "formattable",
+   "ggplot2",
+   # "glue", # join strings neatly
+   "htmlTable",
+   # "janitor", # clean-up messy col names janitor::clean_names()
+   "jsonlite",
+   "lubridate",
+   # "magrittr",
+   "ganttrify",
+   "mime",
+   # "officer",
+   "pandoc",
+   "plan", # for creation of gantt charts
+   "plotly",
+   "RColorBrewer",
+   "RCurl",
+   "readr",
+   "readxl",
+   "rsvg",
+   "Rtools",
+   "scales",
+   "stats",
+   # "tidylog",
+   "tidyr",
+   "tidytext", # pull apart text data, count elements
+   "tidyverse",
+   # "tsibble", # time series data
+   "utf8",
+   # "vroom", # loads data fast
+   # "webshot",
+   "xml2",
+   "xtable"
+)
+#
+idx <- pkgs.load %in% pkgs.inst$Package == FALSE # index of packages that need to be installed
+# pkgs.load[idx]
+if(sum(idx) > 0){
+  install.packages(pkgs.load[idx],
+                   dependencies = TRUE,
+                   repos = "http://stat.ethz.ch/CRAN/")
+  } # if at least one package needs installing, run.
+lapply(pkgs.load, require, character.only = TRUE) # require packages be loaded into current env
+##
+timezone <- "US/Eastern" #Set timezone # set TZ
+if(is.na(Sys.timezone()) == TRUE){
+  Sys.setenv(TZ=timezone)
+}
+##
+os <- .Platform$OS.type
+os <- Sys.info()[[1]][1] #windows linux # identify OS
+#
+options(scipen=999)
+# end
+# <style>th,td{padding:5px 5px 5px 5px;}</style>
+
+
+```
+
+```{r loadData, include=FALSE}
+
+# ServiceDetails <- read_excel("P:/R/data/IS_ServiceDetails.xlsx")
+#########################################
+## compensate for platform differences ##
+df.source.file.name <- "IS_ServiceDetails.xlsx"
+mac.path <- "../data/"
+win.path <- "../data/"
+lnx.path <- "../data/"
+if(os == "Darwin"){
+  df.source.file.path <- mac.path
+  df.source.full.path <- paste0(df.source.file.path,df.source.file.name)
+} else if(os == "Windows"){
+  df.source.file.path <- win.path
+  df.source.full.path <- paste0(df.source.file.path,df.source.file.name)
+} else if(os == "linux"){
+  df.source.file.path <- lnx.path
+  df.source.full.path <- paste0(df.source.file.path,df.source.file.name)
+}
+## compensate for platform differences ##
+#########################################
+ServiceDetails <- read_excel(df.source.full.path)
+
+class(ServiceDetails$`PhotoduplicationDate (Day-Month-Year)`)
+ServiceDetails$`PhotoduplicationDate (Day-Month-Year)` <- as.Date(ServiceDetails$`PhotoduplicationDate (Day-Month-Year)`)
+
+
+```
+
+```{r vars, include=FALSE}
+
+EDFL <- ServiceDetails # establish the EDFL dataframe
+
+min.date <- min(EDFL$`PhotoduplicationDate (Day-Month-Year)`)
+max.date <- max(EDFL$`PhotoduplicationDate (Day-Month-Year)`)
+start.date <- as.Date("2023-06-08") # needed? 
+today <- format.Date(Sys.time(),"%Y-%m-%d")
+start.measure.date <- as.Date("2023-06-08")
+images.remaining.as.of.start.measure.date <- as.numeric(86847) # per L. Morris, 06/08/2024
+
+```
+
+```{r EDFL_manicure, include=FALSE}
+
+EDFL <- ServiceDetails %>%
+  filter(grepl("Dickinson Family Library", ignore.case = TRUE, ActivityName) == TRUE) %>%
+  filter(grepl("capture", ignore.case = TRUE, BillingType) == TRUE |
+           grepl("scan", ignore.case = TRUE, BillingType) == TRUE) %>%
+  filter(`PhotoduplicationDate (Day-Month-Year)` > start.measure.date)
+
+class(EDFL$`PhotoduplicationDate (Day-Month-Year)`)
+
+# --- #
+EDFL["Date"] <- NA # Create MM/YY date column, to group by month
+i <- 1
+n <- nrow(EDFL)
+while(i <= n){
+  d <- paste(
+    lubridate::month(EDFL$`PhotoduplicationDate (Day-Month-Year)`[i]),
+    lubridate::year(EDFL$`PhotoduplicationDate (Day-Month-Year)`[i]),
+    sep = "/")
+  EDFL$Date[i] <- d
+  i <- i + 1
+}
+
+# --- #
+tmp <- EDFL %>%
+#  filter(`PhotoduplicationDate (Day-Month-Year)` > start.measure.date) %>%
+  group_by(Date) %>%
+  summarise(ActivityName=unique(ActivityName),Quantity=sum(Quantity),PaymentAmount=sum(PaymentAmount))
+
+summary.EDFL <- tmp ; rm(tmp)
+summary.EDFL["RunningTotal"] <- NA
+summary.EDFL["months.production.cumulative"] <- 1 #
+summary.EDFL["average.prod.month.cumulative"] <- NA
+summary.EDFL$Date <- lubridate::as_date(summary.EDFL$Date,format="%m/%Y"); summary.EDFL$Date 
+summary.EDFL <- summary.EDFL %>% arrange(Date)
+
+i <- 1
+n <- nrow(summary.EDFL)
+while(i <= n){
+  if(i == 1){
+    rt <- summary.EDFL$Quantity[i]
+    summary.EDFL$RunningTotal[i] <- as.numeric(rt)
+    summary.EDFL$months.production.cumulative[i] <- time_length(summary.EDFL$Date[i] - start.measure.date,unit = "months")
+    av <- summary.EDFL$RunningTotal[i] / summary.EDFL$months.production.cumulative[i]
+    summary.EDFL$average.prod.month.cumulative[i] <- av
+  } else {
+    rt <- summary.EDFL$RunningTotal[i - 1] + summary.EDFL$Quantity[i]
+    summary.EDFL$RunningTotal[i] <- as.numeric(rt)
+    tl <- time_length(summary.EDFL$Date[i] - summary.EDFL$Date[1],unit = "months")
+    summary.EDFL$months.production.cumulative[i] <- tl
+    av <- summary.EDFL$RunningTotal[i] / tl
+    summary.EDFL$average.prod.month.cumulative[i] <- av
+  }
+  i <- i + 1
+}
+# ----- below under construction ----- #
+int <- lubridate::interval(
+  start.measure.date,
+  max(summary.EDFL$Date)
+  )
+
+ds <- dseconds(int) ; ds # duration in seconds
+period.measured.months <- max(summary.EDFL$months.production.cumulative) # duration in months
+
+# ---- #
+
+average.images.month <- sum(summary.EDFL$Quantity)/period.measured.months # AVERAGE images per month
+
+```
+
+```{r gannt, include=FALSE, eval=FALSE}
+
+g <-DiagrammeR::mermaid("
+  gantt
+        dateFormat  YYYY-MM-DD
+        title Adding GANTT diagram functionality to mermaid
+        section A section
+        Completed task            :done,    des1, 2014-01-06,2014-01-08
+        Active task               :active,  des2, 2014-01-09, 3d
+        Future task               :         des3, after des2, 5d
+        Future task2               :         des4, after des3, 5d
+        section Critical tasks
+        Completed task in the critical line :crit, done, 2014-01-06,24h
+        Implement parser and jison          :crit, done, after des1, 2d
+        Create tests for parser             :crit, active, 3d
+        Future task in critical line        :crit, 5d
+        Create tests for renderer           :2d
+        
+        Add to mermaid                      :1d
+        
+")
+
+
+# --- Gannt Header --- #
+  gannt.h.df <- "YYYY-MM-DD"
+  gannt.h.af <- "%b %y"
+  gannt.h.ti <- "Dickinson Family Library image countdown"
+  
+  g.header <- paste0(
+    "dateFormat ",gannt.h.df,"\n",
+    "axisFormat ",gannt.h.af,"\n",
+    "title ",gannt.h.ti,"\n"
+  )
+  
+  # --- Gannt Section --- #
+
+  sections.count <- length(
+    unique(summary.EDFL$ActivityName)
+  )
+
+## TO DO  
+## create a section name variable for the number of sections identified in sections.count
+## populate the variables with each identified section name
+  
+g.s.name <- "section Images per month\n"
+  
+#g.s.name <- unique(summary.EDFL$ActivityName)[sections.count] # make a section name column?
+
+# --- Write text file SINK --- #
+gannt.file.name <- "gfile.txt"
+file.remove(gannt.file.name)
+sink(gannt.file.name,append = TRUE)
+cat(g.header)
+cat(g.s.name)
+#sink() ; file.show("gfile.txt")
+  
+# --- Gannt tasks --- #
+
+i <- 1
+n <- nrow(summary.EDFL)
+while(i <= n){
+  tn_01 <- format.Date(paste0(summary.EDFL$Date[i]),"%b.%y")
+  tn_02 <- paste0(",",prettyNum(summary.EDFL$RunningTotal[i],big.mark = ","))
+  tn_03 <- "\t:"
+  tn_04 <- paste0("task-",i,",",summary.EDFL$Date[i],",4w")
+  t_id <- paste(tn_01,tn_02,tn_03,tn_04, sep=" ")
+  #sink("gfile.txt",append = TRUE)
+  cat(paste0("\n",t_id))
+  i <- i + 1
+}
+sink() ; file.show(gannt.file.name)
+  
+  
+```
+
+```{r stackedBar,include=FALSE}
+
+df.tmp <- summary.EDFL
+df.tmp["TargetImageCount"] <- images.remaining.as.of.start.measure.date
+# DELETE df.tmp["AverageMonthlyImageProduction"] <- NA
+df.tmp["percentCompleted"] <- df.tmp$RunningTotal/df.tmp$TargetImageCount
+df.progressMeter <- df.tmp
+
+i <- 1
+n <- nrow(df.progressMeter)
+while (i <= n) {
+  if (i == 1) {
+    df.progressMeter$TargetImageCount[i] <-
+      images.remaining.as.of.start.measure.date - df.progressMeter$RunningTotal[i]
+  }
+  else {
+    df.progressMeter$TargetImageCount[i] <-
+      df.progressMeter$TargetImageCount[i] - df.progressMeter$RunningTotal[i]
+  }
+  i <- i + 1
+}  
+
+names(df.progressMeter)
+bar.progressMeter <-
+  plot_ly(
+    df.progressMeter,
+    x = ~Date,
+    y = ~RunningTotal,
+    type = "bar",
+    color = "rgb(142,1,82,0)",
+    #marker = list(color = brewer.pal(6,"Paired")),
+    name = "images completed"
+  ) %>%
+  add_trace(y = ~df.progressMeter$TargetImageCount, name = "Estimated images remaining", marker = list(color = "rgb(106,61,254)")) 
+
+# bar.progressMeter <- bar.progressMeter %>%
+#  add_trace(y = ~TargetImageCount, name = "Estimated total images",marker = list(color = "rgb(231,41,138)"))
+
+bar.progressMeter <- bar.progressMeter %>%
+  layout(
+    title = "",
+    yaxis = list(title = "image count"),
+    xaxis = list(title = "Date"),
+    plot_bgcolor = '#e5ecf6',
+    barmode = "stack"
+  ) 
+
+```
+
+```{r scatterActual, include=FALSE}
+
+df.tmp <- summary.EDFL
+df.tmp["TargetImageCount"] <- images.remaining.as.of.start.measure.date
+# DELETE df.tmp["AverageMonthlyImageProduction"] <- average.images.month 
+df.tmp["percentCompleted"] <- df.tmp$RunningTotal/df.tmp$TargetImageCount
+df.progressMeter <- df.tmp
+
+i <- 1
+n <- nrow(df.progressMeter)
+while (i <= n) {
+  if (i == 1) {
+    df.progressMeter$TargetImageCount[i] <-
+      images.remaining.as.of.start.measure.date - df.progressMeter$RunningTotal[i]
+  }
+  else {
+    df.progressMeter$TargetImageCount[i] <-
+      df.progressMeter$TargetImageCount[i] - df.progressMeter$RunningTotal[i]
+  }
+  i <- i + 1
+}  
+
+names(df.progressMeter)
+line.progressMeter <-
+  plot_ly(
+    df.progressMeter,
+    x = ~Date,
+    y = ~ RunningTotal,
+    type = "scatter",
+    connectgaps = TRUE,
+    mode = "lines",
+    color = "#184C78",
+    marker = list(color = "#02735E"),
+    name = "images completed"
+  )
+
+# add_trace(y = ~ images.remaining.as.of.start.measure.date, name = "Estimated images remaining", marker = list(color = "rgb(106,61,254)"))
+
+line.progressMeter <- line.progressMeter %>%
+  add_trace(y = ~TargetImageCount, name = "Estimated images remaining",marker = list(color = "#D92525"))
+
+line.progressMeter <- line.progressMeter %>%
+  layout(
+    title = "",
+    yaxis = list(title = "image count"),
+    xaxis = list(title = "Date"),
+    plot_bgcolor = '#e5ecf6'
+    #barmode = "stack"
+  )
+
+```
+
+```{r projectingFinish, include=FALSE}
+
+remaining <- images.remaining.as.of.start.measure.date - max(summary.EDFL$RunningTotal)
+remainingMonths <- remaining / average.images.month
+projectedEndDate <- max(summary.EDFL$Date) + lubridate::dmonths(x = remainingMonths)
+targetEndDate <- as.Date(
+  format.Date("2026-06-30","%Y-%m-%d")
+  ); class(targetEndDate)
+
+lastMonthMeasured <- max(summary.EDFL$Date) ; class(lastMonthMeasured)
+
+months.to.go.goal <- lubridate::time_length(targetEndDate -lastMonthMeasured,unit = "months")
+
+monthly.target <- remaining/months.to.go.goal
+
+batches.completed <- nrow(summary.EDFL)
+format.Date(min(summary.EDFL$Date),"%B %Y")
+prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")
+
+prettyNum(round(average.images.month,digits = 0), big.mark = ",")
+
+```
+
+```{r scatterProjected, include=FALSE}
+
+#### HERE ###
+
+df.tmp <- summary.EDFL
+df.tmp["TargetImageCount"] <- images.remaining.as.of.start.measure.date
+# DELETE df.tmp["AverageMonthlyImageProduction"] <- average.images.month 
+df.tmp["percentCompleted"] <- df.tmp$RunningTotal/df.tmp$TargetImageCount
+
+df.progressMeter <- df.tmp
+
+i <- 1
+n <- nrow(df.progressMeter)
+while (i <= n) {
+  if (i == 1) {
+    df.progressMeter$TargetImageCount[i] <-
+      images.remaining.as.of.start.measure.date - df.progressMeter$RunningTotal[i]
+  }
+  else {
+    df.progressMeter$TargetImageCount[i] <-
+      df.progressMeter$TargetImageCount[i] - df.progressMeter$RunningTotal[i]
+  }
+  i <- i + 1
+}
+
+## projection row
+names(df.progressMeter)
+date.1 <- as.Date("2023-06-08")
+ActivityNAme.2 <- paste0(unique(df.progressMeter$ActivityName),"--PROECTED")
+Quantity.3 <- df.progressMeter$TargetImageCount[1] - df.progressMeter$RunningTotal[nrow(df.progressMeter)]
+PaymentAmount.4 <- 0
+RunningTotal.5 <- sum(df.progressMeter$Quantity)
+m <- time_length(as.Date(projectedEndDate) - df.progressMeter$Date[1], unit = "months") + max(df.progressMeter$months.production.cumulative)
+months.production.cumulative.6 <- as.numeric(m)
+average.prod.month.cumulative.7 <- df.progressMeter$average.prod.month.cumulative[nrow(df.progressMeter)]
+TargetImageCount.8 <-  df.progressMeter$TargetImageCount[1] - df.progressMeter$RunningTotal[nrow(df.progressMeter)]
+percentCompleted.9 <- 1
+
+r <- c(
+  as.Date(date.1),
+  as.character(ActivityNAme.2),
+  as.numeric(Quantity.3),
+  as.numeric(PaymentAmount.4),
+  as.numeric(RunningTotal.5),
+  as.numeric(months.production.cumulative.6),
+  as.numeric(average.prod.month.cumulative.7),
+  as.numeric(TargetImageCount.8),
+  as.numeric(percentCompleted.9)
+)
+
+df.progressMeter[nrow(df.progressMeter)+1,] <- as.list(r)
+
+names(df.progressMeter)
+line.progressMeter <-
+  plot_ly(
+    df.progressMeter,
+    x = ~Date,
+    y = ~ RunningTotal,
+    type = "scatter",
+    connectgaps = TRUE,
+    mode = "lines",
+    color = "#184C78",
+    marker = list(color = "#02735E"),
+    name = "images completed"
+  )
+
+line.progressMeter <- line.progressMeter %>%
+  add_trace(y = ~TargetImageCount, name = "Estimated images remaining",marker = list(color = "#D92525"))
+
+line.progressMeter <- line.progressMeter %>%
+  add_trace(y = images.remaining.as.of.start.measure.date, name = "Estimated images remaining",marker = list(color = "#D92525"))
+
+line.progressMeter <- line.progressMeter %>%
+  layout(
+    title = "",
+    yaxis = list(title = "image count"),
+    xaxis = list(title = "Date"),
+    plot_bgcolor = '#e5ecf6'
+    #barmode = "stack"
+  )
+
+###################
+
+period.projected.months.remaining = months(integer(remainingMonths))
+time_length(period.projected.months.remaining, unit="months")
+
+start <- ymd(Sys.Date())
+
+start %m+% months(60)
+
+
+```
+
+```{r DELETE_projectingFinish, include=FALSE, eval=FALSE}
+
+remaining <- images.remaining.as.of.start.measure.date - max(summary.EDFL$RunningTotal)
+remainingMonths <- remaining / average.images.month
+projectedEndDate <- max(summary.EDFL$Date) + lubridate::dmonths(x = remainingMonths)
+targetEndDate <- as.Date(
+  format.Date("2026-06-30","%Y-%m-%d")
+  ); class(targetEndDate)
+
+lastMonthMeasured <- max(summary.EDFL$Date) ; class(lastMonthMeasured)
+
+months.to.go.goal <- lubridate::time_length(targetEndDate -lastMonthMeasured,unit = "months")
+
+monthly.target <- remaining/months.to.go.goal
+
+batches.completed <- nrow(summary.EDFL)
+format.Date(min(summary.EDFL$Date),"%B %Y")
+prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")
+
+prettyNum(round(average.images.month,digits = 0), big.mark = ",")
+
+```
+
+## Increasing production rate
+
+In June 2023, Leslie Morris requested increased imaging production for the Emily Dickinson Family Library project.
+
+She estimated `r prettyNum(images.remaining.as.of.start.measure.date,big.mark=",")` page-images remained, and calculated that at our current rate, we'd complete the project in 2034.
+
+Through consultation, testing and evaluation, Houghton and Imaging Services revised the criteria for sorting the books that require a slower, more customized, photography service from books well-matched for our faster, standardized photography service. The updated sorting criteria dramatically increased the proportion of books to be routed to the higher-throughput service.
+
+Subsequently, Imaging Services completed `r batches.completed` batches between `r format.Date(min(summary.EDFL$Date),"%B %Y")` and `r format.Date(max(summary.EDFL$Date),"%B %Y")`, with page-images totaling `r prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")`: An average `r prettyNum(round(average.images.month,digits = 0), big.mark = ",")` per month.
+
+---
+
+`r bar.progressMeter`
+
+---
+
+`r line.progressMeter`
+
+
+  
+  
