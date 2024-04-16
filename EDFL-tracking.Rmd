@@ -1,7 +1,6 @@
 
 ---
 title: "Emily Dickinson Family Library progress meter"
-author: "bill comstock"
 date: "`r Sys.Date()`"
 output: 
   html_document: 
@@ -20,6 +19,15 @@ I do understand that EDIBA projects are to be given priority, and I don’t want
 With appreciation for your time and attention,
 
 Leslie
+
+# ```{r tail, include=FALSE}
+# lastRevised <- timestamp(pre="last revised: ",suffix = "")
+# 
+# ```
+# ---
+#  
+#   <center><small>`r lastRevised`</small></center>
+#   <br /><br />
 
 ```
 
@@ -325,7 +333,7 @@ bar.progressMeter <- bar.progressMeter %>%
   layout(
     title = "",
     yaxis = list(title = "image count"),
-    xaxis = list(title = "Date"),
+    xaxis = list(title = ""),
     plot_bgcolor = '#e5ecf6',
     barmode = "stack"
   ) 
@@ -405,9 +413,19 @@ prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")
 
 prettyNum(round(average.images.month,digits = 0), big.mark = ",")
 
+
+
+
+
+prettyNum(remaining, big.mark = ",")
+prettyNum(round(av,digits = 0), big.mark = ",")
+format.Date(projectedEndDate, "%B %d, %Y")
+format.Date(targetEndDate, "%B %d, %Y")
+prettyNum(round(monthly.target,digits = 0), big.mark = ",")
+
 ```
 
-```{r scatterProjected, include=FALSE}
+```{r scatterProjected, include=FALSE, eval=FALSE}
 
 #### HERE ###
 
@@ -431,8 +449,8 @@ while (i <= n) {
   }
   i <- i + 1
 }
-
-## projection row
+## ---------------------------- ##
+######### projection row #########
 names(df.progressMeter)
 date.1 <- as.Date("2023-06-08")
 ActivityNAme.2 <- paste0(unique(df.progressMeter$ActivityName),"--PROECTED")
@@ -445,7 +463,7 @@ average.prod.month.cumulative.7 <- df.progressMeter$average.prod.month.cumulativ
 TargetImageCount.8 <-  df.progressMeter$TargetImageCount[1] - df.progressMeter$RunningTotal[nrow(df.progressMeter)]
 percentCompleted.9 <- 1
 
-r <- c(
+df.projection <- data.frame(
   as.Date(date.1),
   as.character(ActivityNAme.2),
   as.numeric(Quantity.3),
@@ -457,7 +475,9 @@ r <- c(
   as.numeric(percentCompleted.9)
 )
 
-df.progressMeter[nrow(df.progressMeter)+1,] <- as.list(r)
+colnames(df.projection) <- names(df.progressMeter)
+# so confusing
+df.projection$RunningTotal[nrow(df.projection)] <- sum(df.progressMeter$Quantity) + df.projection$Quantity[nrow(df.projection)]
 
 names(df.progressMeter)
 line.progressMeter <-
@@ -475,9 +495,6 @@ line.progressMeter <-
 
 line.progressMeter <- line.progressMeter %>%
   add_trace(y = ~TargetImageCount, name = "Estimated images remaining",marker = list(color = "#D92525"))
-
-line.progressMeter <- line.progressMeter %>%
-  add_trace(y = images.remaining.as.of.start.measure.date, name = "Estimated images remaining",marker = list(color = "#D92525"))
 
 line.progressMeter <- line.progressMeter %>%
   layout(
@@ -499,6 +516,47 @@ start %m+% months(60)
 
 
 ```
+
+```{r imagesPerMonth, include=FALSE, eval=TRUE}
+
+#### HERE ###
+
+df.tmp <- summary.EDFL
+df.tmp["TargetImageCount"] <- images.remaining.as.of.start.measure.date
+# DELETE df.tmp["AverageMonthlyImageProduction"] <- average.images.month 
+df.tmp["percentCompleted"] <- df.tmp$RunningTotal/df.tmp$TargetImageCount
+
+df.progressMeter <- df.tmp
+
+
+names(df.progressMeter)
+imagesPerMonth.progressMeter <-
+  plot_ly(
+    df.progressMeter,
+    x = ~Date,
+    y = ~ Quantity,
+    type = "scatter",
+    connectgaps = TRUE,
+    mode = "markers",
+    # color = "#184C78",
+    # marker = list(color = "#02735E"),
+                   marker = list(size = 10,
+                             color = 'rgba(255, 182, 193, .9)',
+                             line = list(color = 'rgba(152, 0, 0, .8)',
+                                         width = ~Quantity/200)),
+    name = "images per month"
+  )
+
+imagesPerMonth.progressMeter <- imagesPerMonth.progressMeter %>%
+  layout(
+    title = "Image production",
+    yaxis = list(title = "images per month"),
+    xaxis = list(title = ""),
+    plot_bgcolor = '#e5ecf6'
+  )
+
+```
+
 
 ```{r DELETE_projectingFinish, include=FALSE, eval=FALSE}
 
@@ -523,15 +581,20 @@ prettyNum(round(average.images.month,digits = 0), big.mark = ",")
 
 ```
 
-## Increasing production rate
+## Increasing production
 
 In June 2023, Leslie Morris requested increased imaging production for the Emily Dickinson Family Library project.
 
-She estimated `r prettyNum(images.remaining.as.of.start.measure.date,big.mark=",")` page-images remained, and calculated that at our current rate, we'd complete the project in 2034.
+**She estimated `r prettyNum(images.remaining.as.of.start.measure.date,big.mark=",")` page-images remained**, and calculated that at our current rate, **we'd complete the project in 2034**.
 
-Through consultation, testing and evaluation, Houghton and Imaging Services revised the criteria for sorting the books that require a slower, more customized, photography service from books well-matched for our faster, standardized photography service. The updated sorting criteria dramatically increased the proportion of books to be routed to the higher-throughput service.
+Through consultation, testing and evaluation, Houghton and Imaging Services revised the criteria for sorting the books that require a slower, more customized, photography service from books well-matched to our faster, standardized photography service. The updated sorting criteria dramatically increased the proportion of books to be routed to the higher-throughput service.
 
-Subsequently, Imaging Services completed `r batches.completed` batches between `r format.Date(min(summary.EDFL$Date),"%B %Y")` and `r format.Date(max(summary.EDFL$Date),"%B %Y")`, with page-images totaling `r prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")`: An average `r prettyNum(round(average.images.month,digits = 0), big.mark = ",")` per month.
+Subsequently, **Imaging Services completed `r batches.completed` batches between `r format.Date(min(summary.EDFL$Date),"%B %Y")` and `r format.Date(max(summary.EDFL$Date),"%B %Y")`, with page-images totaling `r prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")`, an average `r prettyNum(round(average.images.month,digits = 0), big.mark = ",")` per month**.
+
+With `r prettyNum(remaining, big.mark = ",")` images remaining, and an average production rate of `r prettyNum(round(av,digits = 0), big.mark = ",")`, our current projected completion date is `r format.Date(projectedEndDate, "%B %d, %Y")`.
+
+However, if we set a **goal to end the project on `r format.Date(targetEndDate, "%B %d, %Y")`, our production rate needs to be `r prettyNum(round(monthly.target,digits = 0), big.mark = ",")` per month**.
+
 
 ---
 
@@ -539,8 +602,15 @@ Subsequently, Imaging Services completed `r batches.completed` batches between `
 
 ---
 
-`r line.progressMeter`
+
+`r imagesPerMonth.progressMeter`
 
 
-  
-  
+```{r tail, include=FALSE}
+lastRevised <- timestamp(pre="last revised: ",suffix = "")
+
+```
+ ---
+ 
+  <center><small>`r lastRevised`</small></center>
+  <br /><br />
