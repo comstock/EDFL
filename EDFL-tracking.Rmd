@@ -177,7 +177,7 @@ tmp <- EDFL %>%
 
 summary.EDFL <- tmp ; rm(tmp)
 summary.EDFL["RunningTotal"] <- NA
-summary.EDFL["months.production.cumulative"] <- 1 #
+summary.EDFL["months.production.cumulative"] <- NA #
 summary.EDFL["average.prod.month.cumulative"] <- NA
 summary.EDFL$Date <- lubridate::as_date(summary.EDFL$Date,format="%m/%Y"); summary.EDFL$Date 
 summary.EDFL <- summary.EDFL %>% arrange(Date)
@@ -194,9 +194,9 @@ while(i <= n){
   } else {
     rt <- summary.EDFL$RunningTotal[i - 1] + summary.EDFL$Quantity[i]
     summary.EDFL$RunningTotal[i] <- as.numeric(rt)
-    tl <- time_length(summary.EDFL$Date[i] - summary.EDFL$Date[1],unit = "months")
-    summary.EDFL$months.production.cumulative[i] <- tl
-    av <- summary.EDFL$RunningTotal[i] / tl
+    tl <- time_length(summary.EDFL$Date[i] - summary.EDFL$Date[i - 1],unit = "months")
+    summary.EDFL$months.production.cumulative[i] <- summary.EDFL$months.production.cumulative[i - 1] + tl
+    av <- summary.EDFL$RunningTotal[i] / summary.EDFL$months.production.cumulative[i]
     summary.EDFL$average.prod.month.cumulative[i] <- av
   }
   i <- i + 1
@@ -308,7 +308,7 @@ while (i <= n) {
   }
   else {
     df.progressMeter$TargetImageCount[i] <-
-      df.progressMeter$TargetImageCount[i] - df.progressMeter$RunningTotal[i]
+      df.progressMeter$TargetImageCount[i - 1] - df.progressMeter$Quantity[i]
   }
   i <- i + 1
 }  
@@ -324,7 +324,7 @@ bar.progressMeter <-
     #marker = list(color = brewer.pal(6,"Paired")),
     name = "images completed"
   ) %>%
-  add_trace(y = ~df.progressMeter$TargetImageCount, name = "Estimated images remaining", marker = list(color = "rgb(106,61,254)")) 
+  add_trace(y = ~TargetImageCount, name = "Estimated images remaining", marker = list(color = "rgb(106,61,254)")) 
 
 # bar.progressMeter <- bar.progressMeter %>%
 #  add_trace(y = ~TargetImageCount, name = "Estimated total images",marker = list(color = "rgb(231,41,138)"))
@@ -357,7 +357,7 @@ while (i <= n) {
   }
   else {
     df.progressMeter$TargetImageCount[i] <-
-      df.progressMeter$TargetImageCount[i] - df.progressMeter$RunningTotal[i]
+      df.progressMeter$TargetImageCount[i - 1] - df.progressMeter$Quantity[i]
   }
   i <- i + 1
 }  
@@ -412,8 +412,6 @@ format.Date(min(summary.EDFL$Date),"%B %Y")
 prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")
 
 prettyNum(round(average.images.month,digits = 0), big.mark = ",")
-
-
 
 
 
@@ -549,7 +547,7 @@ imagesPerMonth.progressMeter <-
 
 imagesPerMonth.progressMeter <- imagesPerMonth.progressMeter %>%
   layout(
-    title = "Image production",
+    # title = "Image production",
     yaxis = list(title = "images per month"),
     xaxis = list(title = ""),
     plot_bgcolor = '#e5ecf6'
@@ -585,25 +583,30 @@ prettyNum(round(average.images.month,digits = 0), big.mark = ",")
 
 In June 2023, Leslie Morris requested increased imaging production for the Emily Dickinson Family Library project.
 
-**She estimated `r prettyNum(images.remaining.as.of.start.measure.date,big.mark=",")` page-images remained**, and calculated that at our current rate, **we'd complete the project in 2034**.
+She **estimated `r prettyNum(images.remaining.as.of.start.measure.date,big.mark=",")` page-images remained**, and calculated that at our current rate, **we'd complete the project in 2034**.
 
 Through consultation, testing and evaluation, Houghton and Imaging Services revised the criteria for sorting the books that require a slower, more customized, photography service from books well-matched to our faster, standardized photography service. The updated sorting criteria dramatically increased the proportion of books to be routed to the higher-throughput service.
 
-Subsequently, **Imaging Services completed `r batches.completed` batches between `r format.Date(min(summary.EDFL$Date),"%B %Y")` and `r format.Date(max(summary.EDFL$Date),"%B %Y")`, with page-images totaling `r prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")`, an average `r prettyNum(round(average.images.month,digits = 0), big.mark = ",")` per month**.
+Subsequently, **Imaging Services completed `r batches.completed` batches between `r format.Date(min(summary.EDFL$Date),"%B %Y")` and `r format.Date(max(summary.EDFL$Date),"%B %Y")`, with page-images totaling `r prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")`--an average `r prettyNum(round(average.images.month,digits = 0), big.mark = ",")` per month**.
 
-With `r prettyNum(remaining, big.mark = ",")` images remaining, and an average production rate of `r prettyNum(round(av,digits = 0), big.mark = ",")`, our current projected completion date is `r format.Date(projectedEndDate, "%B %d, %Y")`.
+### At our current production rate
 
-However, if we set a **goal to end the project on `r format.Date(targetEndDate, "%B %d, %Y")`, our production rate needs to be `r prettyNum(round(monthly.target,digits = 0), big.mark = ",")` per month**.
+With **`r prettyNum(remaining, big.mark = ",")` images remaining**, and an **average monthly production rate of `r prettyNum(round(av,digits = 0), big.mark = ",")`**, our current **projected completion date is `r format.Date(projectedEndDate, "%B %d, %Y")`**.
+
+
+`r imagesPerMonth.progressMeter`
+
+---
+
+### Setting a date for completing the project
+Alternatively, if we set a **goal to end the project on `r format.Date(targetEndDate, "%B %d, %Y")`**, for example, our production rate needs to be **`r prettyNum(round(monthly.target,digits = 0), big.mark = ",")` images per month**.
 
 
 ---
 
 `r bar.progressMeter`
 
----
 
-
-`r imagesPerMonth.progressMeter`
 
 
 ```{r tail, include=FALSE}
