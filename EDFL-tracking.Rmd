@@ -331,7 +331,7 @@ bar.progressMeter <-
 
 bar.progressMeter <- bar.progressMeter %>%
   layout(
-    title = "",
+    title = "Progress Meter",
     yaxis = list(title = "image count"),
     xaxis = list(title = ""),
     plot_bgcolor = '#e5ecf6',
@@ -547,7 +547,7 @@ imagesPerMonth.progressMeter <-
 
 imagesPerMonth.progressMeter <- imagesPerMonth.progressMeter %>%
   layout(
-    # title = "Image production",
+    title = "Monthly DRS deposit log",
     yaxis = list(title = "images per month"),
     xaxis = list(title = ""),
     plot_bgcolor = '#e5ecf6'
@@ -611,7 +611,7 @@ Alternatively, if we set a **goal to end the project on `r format.Date(targetEnd
 
 ```{r tail, include=FALSE}
 lastRevised <- timestamp(pre="last revised: ",suffix = "")
-
+file.copy(from = "EDFL-tracking.html", to = "index.html",overwrite = TRUE)
 ```
  ---
  
