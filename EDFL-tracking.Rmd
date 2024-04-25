@@ -341,7 +341,9 @@ bar.progressMeter <- bar.progressMeter %>%
 ```
 
 ```{r scatterActual, include=FALSE}
-
+##################################
+##### This plot not deployed #####
+##################################
 df.tmp <- summary.EDFL
 df.tmp["TargetImageCount"] <- images.remaining.as.of.start.measure.date
 # DELETE df.tmp["AverageMonthlyImageProduction"] <- average.images.month 
@@ -424,8 +426,6 @@ prettyNum(round(monthly.target,digits = 0), big.mark = ",")
 ```
 
 ```{r scatterProjected, include=FALSE, eval=FALSE}
-
-#### HERE ###
 
 df.tmp <- summary.EDFL
 df.tmp["TargetImageCount"] <- images.remaining.as.of.start.measure.date
@@ -599,8 +599,7 @@ With **`r prettyNum(remaining, big.mark = ",")` images remaining**, and an **ave
 ---
 
 ### Setting a date for completing the project
-Alternatively, if we set a **goal to end the project on `r format.Date(targetEndDate, "%B %d, %Y")`**, for example, our production rate needs to be **`r prettyNum(round(monthly.target,digits = 0), big.mark = ",")` images per month**.
-
+Alternatively, if we set a **goal to end the project on `r format.Date(targetEndDate, "%B %d, %Y")`**, for example, our production rate needs to be **`r prettyNum(round(monthly.target,digits = 0), big.mark = ",")` images per month**. Practically, achieving the required month-over-month average necessitates setting a higher monthly production target, recognizing we will periodically fail to hit the mark. <mark>**We recommend setting a 5000-page monthly target for books sent to our D20 studio, and reassessing in October 2024**</mark>.
 
 ---
 
