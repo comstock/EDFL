@@ -1,6 +1,6 @@
 
 ---
-title: "Emily Dickinson Family Library progress meter"
+title: "Dickinson Family Library progress meter"
 date: "`r Sys.Date()`"
 output: 
   html_document: 
@@ -581,25 +581,26 @@ prettyNum(round(average.images.month,digits = 0), big.mark = ",")
 
 ## Increasing production
 
-In June 2023, Leslie Morris requested increased imaging production for the Emily Dickinson Family Library project.
+In June 2023, Houghton Library requested increased imaging production for the *[Dickinson Family Library](https://id.lib.harvard.edu/ead/hou00321/catalog)* project.
 
-She **estimated `r prettyNum(images.remaining.as.of.start.measure.date,big.mark=",")` page-images remained**, and calculated that at our current rate, **we'd complete the project in 2034**.
+At the time, an **estimated `r prettyNum(images.remaining.as.of.start.measure.date,big.mark=",")` page-images remained**, and our production rate would have us **completing the project in 2034**.
 
-Through consultation, testing and evaluation, Houghton and Imaging Services revised the criteria for sorting the books that require a slower, more customized, photography service from books well-matched to our faster, standardized photography service. The updated sorting criteria dramatically increased the proportion of books to be routed to the higher-throughput service.
+Through consultation, testing and evaluation, Houghton and Imaging Services revised the sorting criteria used to determine which books require specialized handling and photography from those well-matched to our standardized, higher-production, photography service. **The updated sorting criteria dramatically increased the proportion of books routed to the higher-throughput service.**
 
-Subsequently, **Imaging Services completed `r batches.completed` batches between `r format.Date(min(summary.EDFL$Date),"%B %Y")` and `r format.Date(max(summary.EDFL$Date),"%B %Y")`, with page-images totaling `r prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")`--an average `r prettyNum(round(average.images.month,digits = 0), big.mark = ",")` per month**.
+Subsequently, **Imaging Services has completed `r batches.completed` batches between `r format.Date(min(summary.EDFL$Date),"%B %Y")` and `r format.Date(max(summary.EDFL$Date),"%B %Y")`, with page-images totaling `r prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")`--an average `r prettyNum(round(average.images.month,digits = 0), big.mark = ",")` per month**.
 
 ### At our current production rate
 
-With **`r prettyNum(remaining, big.mark = ",")` images remaining**, and an **average monthly production rate of `r prettyNum(round(av,digits = 0), big.mark = ",")`**, our current **projected completion date is `r format.Date(projectedEndDate, "%B %d, %Y")`**.
+With **`r prettyNum(remaining, big.mark = ",")` images remaining**, and our current **production rate of `r prettyNum(round(av,digits = 0), big.mark = ",")` per month**, our **projected project completion date is `r format.Date(projectedEndDate, "%B %d, %Y")`**.
 
 
 `r imagesPerMonth.progressMeter`
 
 ---
 
-### Setting a date for completing the project
-Alternatively, if we set a **goal to end the project on `r format.Date(targetEndDate, "%B %d, %Y")`**, for example, our production rate needs to be **`r prettyNum(round(monthly.target,digits = 0), big.mark = ",")` images per month**. Practically, achieving the required month-over-month average necessitates setting a higher monthly production target, recognizing we will periodically fail to hit the mark. <mark>**We recommend setting a 5000-page monthly target for books sent to our D20 studio, and reassessing in October 2024**</mark>.
+### Targeting a date for completing the project
+
+If we set a **goal to end the project on `r format.Date(targetEndDate, "%B %d, %Y")`**, for example, our production rate needs to be **`r prettyNum(round(monthly.target,digits = 0), big.mark = ",")` images per month**. In practice, ensuring we complete the project on-time will require setting a more ambitious target. Therefore, Imaging Services <mark>**recommends Houghton deliver 4000--5000 pages monthly to *D20*, in addition to any batches it delivers to *D40*, and that we reassess our progress in October 2024**</mark>.
 
 ---
 
