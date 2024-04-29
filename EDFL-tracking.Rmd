@@ -587,7 +587,7 @@ At the time, an **estimated `r prettyNum(images.remaining.as.of.start.measure.da
 
 Through consultation, testing and evaluation, Houghton and Imaging Services revised the sorting criteria used to determine which books require specialized handling and photography from those well-matched to our standardized, higher-production, photography service. **The updated sorting criteria dramatically increased the proportion of books routed to the higher-throughput service.**
 
-Subsequently, **Imaging Services has completed `r batches.completed` batches between `r format.Date(min(summary.EDFL$Date),"%B %Y")` and `r format.Date(max(summary.EDFL$Date),"%B %Y")`, with page-images totaling `r prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")`--an average `r prettyNum(round(average.images.month,digits = 0), big.mark = ",")` per month**.
+Subsequently, **Imaging Services has completed `r batches.completed` batches between June 2023 and `r format.Date(max(summary.EDFL$Date),"%B %Y")`, with page-images totaling `r prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")`--an average `r prettyNum(round(average.images.month,digits = 0), big.mark = ",")` per month**.
 
 ### At our current production rate
 
