@@ -60,7 +60,7 @@ pkgs.load <- c( # default list of packages to load
    "pandoc",
    "plan", # for creation of gantt charts
    "plotly",
-   "RColorBrewer",
+   # "RColorBrewer",
    "RCurl",
    "readr",
    "readxl",
@@ -321,7 +321,6 @@ bar.progressMeter <-
     y = ~RunningTotal,
     type = "bar",
     color = "rgb(142,1,82,0)",
-    #marker = list(color = brewer.pal(6,"Paired")),
     name = "images completed"
   ) %>%
   add_trace(y = ~TargetImageCount, name = "Estimated images remaining", marker = list(color = "rgb(106,61,254)")) 
@@ -332,8 +331,10 @@ bar.progressMeter <-
 bar.progressMeter <- bar.progressMeter %>%
   layout(
     title = "Progress Meter",
-    yaxis = list(title = "image count"),
-    xaxis = list(title = ""),
+    yaxis = list(title = "image count",
+                 tickformat=","), # comma separator for thousands
+    xaxis = list(title = "",
+                 tickformat ="%b %Y"), # date formatted
     plot_bgcolor = '#e5ecf6',
     barmode = "stack"
   ) 
@@ -548,8 +549,12 @@ imagesPerMonth.progressMeter <-
 imagesPerMonth.progressMeter <- imagesPerMonth.progressMeter %>%
   layout(
     title = "Monthly DRS deposit log",
-    yaxis = list(title = "images per month"),
-    xaxis = list(title = ""),
+    yaxis = list(title = "images per month",
+                 tickformat = ",",
+                 hoverformat = ","), # comma separator for thousands
+    xaxis = list(title = "",
+                 type ="date",
+                 tickformat = "%b %Y"), # date format specified
     plot_bgcolor = '#e5ecf6'
   )
 
