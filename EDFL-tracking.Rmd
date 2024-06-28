@@ -7,6 +7,7 @@ output:
     theme: readable
 ---
 ```{r, originalRequest,eval=FALSE, include=FALSE}
+
 2023-06-08
 Dear Bill,
 
@@ -20,14 +21,67 @@ With appreciation for your time and attention,
 
 Leslie
 
-# ```{r tail, include=FALSE}
-# lastRevised <- timestamp(pre="last revised: ",suffix = "")
-# 
-# ```
-# ---
-#  
-#   <center><small>`r lastRevised`</small></center>
-#   <br /><br />
+############################################
+#### 06/27/2024 from Christine Jacobson ####
+############################################
+
+Hi Bill!
+
+We now have some updated numbers for the studio and the lab workflow. I think there’s a lot of good news here; though depending on how we can handle the periodicals, there might still be a long road ahead with the studio side. I will bring a few examples next time I see Joe and get his perspective on whether they can be done at the lab or not. I hope this is helpful for assessing a reasonable timeline.  
+
+Amount of call numbers and pages left (estimated)
+
+Studio-designated titles
+
+36 call numbers left
+15, 124 pages
+Currently sending: 600 pages per month, with pick up and drop offs happening every 2-3 months
+Lab-designated titles
+
+88 call numbers left
+47,713 pages left
+Currently sending 4k pages per batch, with pick up and drop offs happening once a month.
+To-be Designated titles (will consult with Joe Cavallo)
+
+6 call numbers left, but includes 56 vols of periodicals
+223,050 pages left
+Titles to-be treated at Weissman before imaging (will assign them Studio/Lab after treatment)
+
+18 call numbers left
+97, 440 pages left
+Total call numbers left to be digitized: 148 
+
+Total pages left to be digitized: 171,971
+
+____________________________________________________________________________________________
+
+Potential Timelines
+
+Lab
+
+at a rate of 4k/month we could complete digitization of lab-designated books in 12 months
+Studio
+
+At a rate of 600/month we could complete digitization of studio-designated books in 25 months
+Periodicals
+
+This material constitutes 97, 440 pages
+It is not yet clear whether we can send this material to the Studio or the Lab; will review with Joe Cavallo. The majority of it is in poor condition.
+
+Best case scenario: at a rate of 4k/month this material will add 25 months to the project, or a little more than 2 years
+
+Worst case scenario: at a rate of 600/month this material will add 162 months to the project, or 13.5 years
+
+Other Potential Challenges:
+
+Modern will need to hire and train a new LHT in the summer of 2024 after the departure of our current department assistant who handles all 
+metadata
+
+Christine will go on maternity leave from November 2024-April 2025.
+
+The pace at the Studio continues to be unpredictable and it is unclear at what pace we’ll be able to digitize the 36-42 call numbers left
+ 
+Christine
 
 ```
 
@@ -141,10 +195,26 @@ min.date <- min(EDFL$`PhotoduplicationDate (Day-Month-Year)`)
 max.date <- max(EDFL$`PhotoduplicationDate (Day-Month-Year)`)
 start.date <- as.Date("2023-06-08") # needed? 
 today <- format.Date(Sys.time(),"%Y-%m-%d")
-start.measure.date <- as.Date("2023-06-08")
-images.remaining.as.of.start.measure.date <- as.numeric(86847) # per L. Morris, 06/08/2024
+start.measure.date <- as.Date("2024-06-27")
+
+worflow.not.yet.assigned.images <- 223050 # per Christine Jacobson, 6/27/24
+D20.images.remaining <- 47713 # per Christine, 6/27/24, here i assume all pages without a designated workflow (D20 or D40) are to be queued for D20, even though we know some portion will go to D40.
+D40.images.remaining <- 15124
+# images.remaining.as.of.start.measure.date <- as.numeric(86847) # per L. Morris, 06/08/2023
+pageimages.to.be.treated.WPC <- 97440
+images.remaining.as.of.start.measure.date <- as.numeric(worflow.not.yet.assigned.images + D20.images.remaining + D40.images.remaining + pageimages.to.be.treated.WPC) # per C. Jacobson, 06/27/2024
 
 ```
+<!-- ### Scrap paper -->
+
+<!-- * Studio-designated titles (`r D40.images.remaining`) + Lab-designated titles (`r D20.images.remaining`) + To-be Designated titles (`r worflow.not.yet.assigned.images`) = `r prettyNum(D40.images.remaining + D20.images.remaining + worflow.not.yet.assigned.images, big.mark = ",")` images. -->
+
+<!-- * Studio-designated titles (`r D40.images.remaining`) + Lab-designated titles (`r D20.images.remaining`) + Titles to-be treated at Weissman before imaging (`r pageimages.to.be.treated.WPC`) = `r prettyNum(D40.images.remaining + D20.images.remaining + pageimages.to.be.treated.WPC, big.mark = ",")` images. -->
+
+<!-- * 171971 - `r D40.images.remaining + D20.images.remaining + worflow.not.yet.assigned.images` = `r 171971 - (D40.images.remaining + D20.images.remaining + worflow.not.yet.assigned.images)`. -->
+
+<!-- * 171971 - `r D40.images.remaining + D20.images.remaining + pageimages.to.be.treated.WPC` = `r 171971 - (D40.images.remaining + D20.images.remaining + pageimages.to.be.treated.WPC)`. -->
+
 
 ```{r EDFL_manicure, include=FALSE}
 
@@ -416,8 +486,6 @@ prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")
 
 prettyNum(round(average.images.month,digits = 0), big.mark = ",")
 
-
-
 prettyNum(remaining, big.mark = ",")
 prettyNum(round(av,digits = 0), big.mark = ",")
 format.Date(projectedEndDate, "%B %d, %Y")
@@ -527,7 +595,6 @@ df.tmp["percentCompleted"] <- df.tmp$RunningTotal/df.tmp$TargetImageCount
 
 df.progressMeter <- df.tmp
 
-
 names(df.progressMeter)
 imagesPerMonth.progressMeter <-
   plot_ly(
@@ -588,11 +655,18 @@ prettyNum(round(average.images.month,digits = 0), big.mark = ",")
 
 In June 2023, Houghton Library requested increased imaging production for the *[Dickinson Family Library](https://id.lib.harvard.edu/ead/hou00321/catalog)* project.
 
-At the time, an **estimated `r prettyNum(images.remaining.as.of.start.measure.date,big.mark=",")` page-images remained**, and our production rate would have had us **completing the project in 2034**.
-
 Through consultation, testing and evaluation, Houghton and Imaging Services revised the sorting criteria used to determine which books require specialized handling and photography from those well-matched to our standardized, higher-production, photography service. **The updated sorting criteria dramatically increased the proportion of books routed to the higher-throughput service.**
 
-Subsequently, **Imaging Services has completed `r batches.completed` batches between June 2023 and `r format.Date(max(summary.EDFL$Date),"%B %Y")`, with page-images totaling `r prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")`--an average `r prettyNum(round(average.images.month,digits = 0), big.mark = ",")` per month**.
+Per Christine Jacobson, `r start.measure.date`, an **estimated `r prettyNum(images.remaining.as.of.start.measure.date,big.mark=",")` page-images remained**.
+
+Post-`r start.measure.date`, **Imaging Services has completed `r batches.completed` batches, with page-images totaling `r prettyNum(sum(summary.EDFL$Quantity),big.mark = ",")`--an average `r prettyNum(round(average.images.month,digits = 0), big.mark = ",")` per month**.
+
+### Estimating remaining volumes and page-images, per CJ, 06/27/2024
+
+* Studio (D40) designated titles: `r prettyNum(D40.images.remaining, big.mark = ",")` page-images.
+* Lab (D20) desginated titles: `r prettyNum(D20.images.remaining, big.mark = ",")` page-images.
+* D20- & D40-designated items that need to be treated: `r prettyNum(pageimages.to.be.treated.WPC, big.mark = ",")` page-images.
+* To-be-designated items: `r prettyNum(worflow.not.yet.assigned.images, big.mark = ",")` page-images
 
 ### At our current production rate
 
