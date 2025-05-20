@@ -167,7 +167,7 @@ options(scipen=999)
 ## compensate for platform differences ##
 df.source.file.name <- "IS_ServiceDetails.xlsx"
 mac.path <- "../data/"
-win.path <- "../data/"
+win.path <- "P:/R/data/"
 lnx.path <- "../data/"
 if(os == "Darwin"){
   df.source.file.path <- mac.path
