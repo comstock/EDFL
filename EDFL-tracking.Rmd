@@ -2,9 +2,11 @@
 ---
 title: "Dickinson Family Library progress meter"
 date: "`r Sys.Date()`"
-output: 
-  html_document: 
+output:
+  html_document:
     theme: readable
+  word_document: default
+  pdf_document: default
 ---
 ```{r, originalRequest,eval=FALSE, include=FALSE}
 
@@ -202,7 +204,10 @@ D20.images.remaining <- 47713 # per Christine, 6/27/24, here i assume all pages 
 D40.images.remaining <- 15124
 # images.remaining.as.of.start.measure.date <- as.numeric(86847) # per L. Morris, 06/08/2023
 pageimages.to.be.treated.WPC <- 97440
-images.remaining.as.of.start.measure.date <- as.numeric(worflow.not.yet.assigned.images + D20.images.remaining + D40.images.remaining + pageimages.to.be.treated.WPC) # per C. Jacobson, 06/27/2024
+
+# images.remaining.as.of.start.measure.date <- as.numeric(worflow.not.yet.assigned.images + D20.images.remaining + D40.images.remaining + pageimages.to.be.treated.WPC) # per C. Jacobson, 06/27/2024
+
+images.remaining.as.of.start.measure.date <- as.numeric(D20.images.remaining + D40.images.remaining + pageimages.to.be.treated.WPC) # per C. Jacobson, 06/27/2024, removed count of workflow images not yet assigned
 
 ```
 <!-- ### Scrap paper -->
@@ -391,7 +396,7 @@ bar.progressMeter <-
     y = ~RunningTotal,
     type = "bar",
     color = "rgb(142,1,82,0)",
-    name = "images completed"
+    name = "images produced"
   ) %>%
   add_trace(y = ~TargetImageCount, name = "Estimated images remaining", marker = list(color = "rgb(106,61,254)")) 
 
@@ -667,6 +672,7 @@ Post-`r start.measure.date`, **Imaging Services has completed `r batches.complet
 * Lab (D20) desginated titles: `r prettyNum(D20.images.remaining, big.mark = ",")` page-images.
 * D20- & D40-designated items that need to be treated: `r prettyNum(pageimages.to.be.treated.WPC, big.mark = ",")` page-images.
 * To-be-designated items: `r prettyNum(worflow.not.yet.assigned.images, big.mark = ",")` page-images
+* Total number of images, estimated: `r images.remaining.as.of.start.measure.date`
 
 ### At our current production rate
 
@@ -686,8 +692,6 @@ In this scenario, <mark>**Imaging Services would recommend Houghton deliver 4000
 ---
 
 `r bar.progressMeter`
-
-
 
 
 ```{r tail, include=FALSE}
