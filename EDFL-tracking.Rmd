@@ -476,7 +476,7 @@ remaining <- images.remaining.as.of.start.measure.date - max(summary.EDFL$Runnin
 remainingMonths <- remaining / average.images.month
 projectedEndDate <- max(summary.EDFL$Date) + lubridate::dmonths(x = remainingMonths)
 targetEndDate <- as.Date(
-  format.Date("2026-06-30","%Y-%m-%d")
+  format.Date("2027-06-30","%Y-%m-%d")
   ); class(targetEndDate)
 
 lastMonthMeasured <- max(summary.EDFL$Date) ; class(lastMonthMeasured)
@@ -685,7 +685,7 @@ With **`r prettyNum(remaining, big.mark = ",")` images remaining**, and our curr
 
 ### Targeting a date for completing the project
 
-Alternatively, if we set a **goal of completing the project on `r format.Date(targetEndDate, "%B %d, %Y")`**, for example, our production rate would need to be **`r prettyNum(round(monthly.target,digits = 0), big.mark = ",")` images per month**; and in practice, ensuring we complete the project on-time would require setting a more ambitious target, recognizing we will periodically fail to hit any mark we set.
+Alternatively, if we set a **goal of completing the project on `r format.Date(targetEndDate, "%B %d, %Y")`**, our production rate would need to be **`r prettyNum(round(monthly.target,digits = 0), big.mark = ",")` images per month**.
 
 ---
 
