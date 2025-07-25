@@ -672,7 +672,7 @@ Post-`r start.measure.date`, **Imaging Services has completed `r batches.complet
 * Lab (D20) desginated titles: `r prettyNum(D20.images.remaining, big.mark = ",")` page-images.
 * D20- & D40-designated items that need to be treated: `r prettyNum(pageimages.to.be.treated.WPC, big.mark = ",")` page-images.
 * To-be-designated items: `r prettyNum(worflow.not.yet.assigned.images, big.mark = ",")` page-images
-* Total number of images, estimated: `r images.remaining.as.of.start.measure.date`
+* Total number of images, estimated: `r prettyNum(images.remaining.as.of.start.measure.date, big.mark = ",")`
 
 ### At our current production rate
 
